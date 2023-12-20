@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:video_player/video_player.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,19 +33,22 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
+  VideoPlayerController? _controller;
   XFile? _image;
   final imagePicker = ImagePicker();
 
   // カメラから写真を取得するメソッド
   Future getImageFromCamera() async {
     try {
-      final pickedFile = await imagePicker.pickImage(source: ImageSource.camera);
-      setState(() {
+      final pickedFile = await imagePicker.pickVideo(source: ImageSource.camera);
         if (pickedFile != null) {
-          _image = XFile(pickedFile.path);
+          _controller = VideoPlayerController.file(File(pickedFile.path));
+          _controller!.initialize().then((_) {
+            setState(() {
+              _controller!.play();
+            });
+          });
         }
-      });
     } catch (error) {
       print(error);
     }
@@ -53,12 +57,16 @@ class _MyHomePageState extends State<MyHomePage> {
   // ギャラリーから写真を取得するメソッド
   Future getImageFromGarally() async {
     try {
-      final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
-      setState(() {
+      final pickedFile = await imagePicker.pickVideo(source: ImageSource.gallery);
         if (pickedFile != null) {
-          _image = XFile(pickedFile.path);
+          _controller = VideoPlayerController.file(File(pickedFile.path));
+          _controller!.initialize().then((_) {
+            setState(() {
+              _controller!.play();
+            });
+          });
         }
-      });
+
     } catch (error) {
       print(error);
     }
@@ -73,10 +81,10 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Center(
         // 取得した写真を表示する(写真がない場合はメッセージ)
-        child: _image == null
-            ? Text("写真を選択してください",
+        child: _controller == null
+            ? Text("動画を選択してください",
         style: Theme.of(context).textTheme.headlineSmall)
-            : Image.file(File(_image!.path))
+            : VideoPlayer(_controller!)
       ),
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -84,7 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // カメラから取得するボタン
           FloatingActionButton(
               onPressed: getImageFromCamera,
-            child: const Icon(Icons.photo_camera),
+            child: const Icon(Icons.video_call),
           ),
           // ギャラリーから取得するボタン
           FloatingActionButton(
